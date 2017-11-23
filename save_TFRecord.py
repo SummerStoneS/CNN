@@ -2,6 +2,7 @@ import glob
 import tensorflow as tf
 from itertools import groupby
 from collections import defaultdict
+import os
 
 sess = tf.Session()
 
@@ -32,7 +33,7 @@ for dog_breed, breed_images in groupby(image_filename_with_breed, lambda x: x[0]
 """
 
 
-def write_records_file(dataset, record_location):
+def write_records_file(dataset, record_location, interval=3):
     """
     :param dataset: 刚才生成的字典
     :param record_location: TFRecord存储路径
@@ -42,13 +43,11 @@ def write_records_file(dataset, record_location):
     current_index = 0
     for breed, images_filenames in dataset.items():
         for image_filename in images_filenames:
-            if current_index % 100 == 0:
-                if writer:
-                    writer.close()
+            if current_index % interval == 0:
+
                 record_filename = "{record_location}-{current_index}.tfrecords".format(record_location=record_location,
                                                                                        current_index=current_index)
                 writer = tf.python_io.TFRecordWriter(record_filename)
-                current_index += 1
 
                 image_file = tf.read_file(image_filename)
                 try:
@@ -67,6 +66,13 @@ def write_records_file(dataset, record_location):
                 }))
                 writer.write(example.SerializeToString())
                 writer.close()
+            current_index += 1
+training_save_path = './output/training-images/training-image'
+testing_save_path = './output/testing-images/testing-image'
+if not os.path.exists(training_save_path):
+    os.makedirs(training_save_path)
+if not os.path.exists(testing_save_path):
+    os.makedirs(testing_save_path)
 
-write_records_file(testing_dataset, './output/testing-images/testing-image')
-write_records_file(training_dataset, './output/training-images/training-image')
+write_records_file(testing_dataset, testing_save_path, interval=7)
+write_records_file(training_dataset, training_save_path, interval=3)

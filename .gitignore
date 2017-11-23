@@ -6,5 +6,6 @@
 .idea
 *.iml
 *.jpg
+*.tfrecords
 out
 gen
